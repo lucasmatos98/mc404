@@ -14,5 +14,6 @@ CHIP Or {
     OUT out;
 
     PARTS:
-    // Put your code here:
+    Nor(a=a, b=b, out=norAB);
+    Not(a=norAB, out=out);
 }
