@@ -20,10 +20,10 @@ volta:
     addi t3,t3,-1
     bne t3,zero,volta
     
-    addi a2, zero, 5; # a2 = zero + 5
+    addi a2, zero, 5;
     lui s0,%hi(vetor)
     addi s0,s0,%lo(vetor)
-    addi t4, zero, 2147483647; # t4 = zero + 2147483647
+    addi t4, zero, 2147483647;
     
 checkLesser:
     lw t3, 0(s0)
