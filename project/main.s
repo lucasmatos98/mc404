@@ -45,7 +45,8 @@ sum:
     add a0, t1, t2
 
     # check if it is negative
-    andi a0, zero, 2147483648
+    andi t3, a0, 2147483648
+    
     # TODO
 
     addi t0, zero, 1
