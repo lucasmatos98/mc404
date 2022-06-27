@@ -17,6 +17,8 @@ main:
     # jump to chosen operation
     addi t1, zero, 1
     beq a0, t1, sum; # if option == 1 then sum
+    # addi t1, zero, 2
+    # beq a0, t1, sub; # if option == 2 then sub
 
     # show error message
     lui a0, %hi(.error_message)
@@ -54,8 +56,6 @@ sum:
     
     # exit
     j end
-    
-
 
 .rodata
 .menu_start:
