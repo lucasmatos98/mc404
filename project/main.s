@@ -18,6 +18,11 @@ main:
     # jump to chosen operation
     addi t1, zero, 1
     beq a0, t1, sum # if option == 1 then sum
+    addi t1, zero, 2;
+    beq a0, t1, subtraction # if option == 2 then sub
+    addi t1, zero, 3;
+    beq a0, t1, multiplication # if option == 3 then mul
+    
 
     # show error message
     lui a0, %hi(.error_message)
@@ -55,6 +60,78 @@ sum:
     call printPositive
     j end
 
+subtraction:
+    # save first int to t1
+    call readInt
+    addi t1, a0, 0
+
+    # save second int to t2
+    call readInt
+    addi t2, a0, 0
+
+    # save difference to a0 and t1
+    sub a0, t1, t2
+    addi t1, a0, 0
+    
+    call checkIfNegative
+    addi t2, a0, 0 # t2 = isNegative
+    addi a0, t1, 0 # a0 = difference
+    
+    bne t2, zero, returnIsNegative
+    
+    call printPositive
+    j end
+
+multiplication:
+    # save first int to t1 and a1
+    call readInt
+    addi t1, a0, 0
+    addi a1, a0, 0
+    
+    # save second int to t2 and a2
+    call readInt
+    addi t2, a0, 0
+    addi a2, a0, 0
+    
+    # check if first int is zero
+    beq t1, zero, returnIsZero
+
+    # check if second int is zero
+    beq t2, zero, returnIsZero
+
+    # check if first int is negative
+    addi a0, t1, 0
+    call checkIfNegative
+    addi t3, a0, 0
+
+    # check if second int is negative
+    addi a0, t2, 0
+    call checkIfNegative
+    add t3, t3, a0
+    # case one is negative and one is positive then t3 = 1, else t3 = 0 or t3 = 2
+    
+    # a0 = |t1| and a1 = |t2|
+    addi a0, t1, 0
+    call getAbsolute
+    addi a1, a0, 0
+    addi a0, t2, 0
+    call getAbsolute
+
+    # calculate product
+    call multiply
+    
+    addi t1, a0, 1
+    bne t3, t1, returnIsNegative
+    
+    call printPositive
+    j end
+
+returnIsZero:
+    addi a0, zero, 0
+    addi t0, zero, 1
+    ecall
+    j end
+
 returnIsNegative:
     call printNegative
     j end
@@ -64,26 +141,56 @@ readInt:
     ecall
     ret
 
-
 checkIfNegative:
     # check if it is negative
     andi a0, a0, 2147483648 # 2^31
+    slt a0, a0, zero # if argument is negative then a0 = 1
+    ret
+
+getAbsolute:
+    # return absolute value
+    call push
+    call checkIfNegative
+
+    # case is negative then negate and add one
+    call pop
+    addi a1, zero, 1
+    beq a0, a1, negateAndAddOne
+
+    # case is positive just return
+    ret
+
+multiply:
+    addi a3, a0, 0
+multiply_loop:
+    addi a0, a3, 0
+    addi a1, zero, -1
+    bne a1, zero, multiply_loop
+    ret
+
+negateAndAddOne:
+    # convert to absolute value
+    not a0, a0 
+    addi a0, a0, 1
+    ret
+
+print_minus_sign:
+    addi t0, zero, 2
+    addi a0, zero, 45
+    ecall
     ret
 
 printNegative:
     # make it positive
-    not a0, a0 
-    addi a1, a0, 1
+    call negateAndAddOne
+    addi a1, a0, 0
 
     # print minus sign
-    addi t0, zero, 2
-    addi a0, zero, 45
-    ecall
+    call print_minus_sign
 
     # print number
     addi a0, a1, 0
-    addi t0, zero, 1
-    ecall
+    call printPositive
     ret
 
 printPositive:
@@ -102,6 +209,7 @@ pop:
 
 .rodata
 .menu_start:
+    # TODO add menu options for SUB and MULT
     .word 0x6F6F6843 # 43 68 6F 6F
     .word 0x6F206573 # 73 65 20 6F
     .word 0x61726570 # 70 65 72 61
@@ -117,3 +225,5 @@ pop:
     .word 0x6F697470 # 70 74 69 6F
     .word 0x00000A6E # 6E
     .text
+# TODO add error message for division by zero
+# TODO add error message for overflow
