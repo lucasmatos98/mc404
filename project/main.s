@@ -110,7 +110,7 @@ multiplication:
     add t3, t3, a0
     # case one is negative and one is positive then t3 = 1, else t3 = 0 or t3 = 2
     
-    # a0 = |t1| and a1 = |t2|
+    # a0 = abs(t1) and a1 = abs(t2)
     addi a0, t1, 0
     call getAbsolute
     addi a1, a0, 0
