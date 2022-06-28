@@ -1,22 +1,23 @@
 main:
     # save return address
-    addi sp, sp, -4
-    sw ra, 0(sp)
+    addi a0, ra, 0
+    call push
 
     # print menu options
-    lui a0, %hi(.menu_start)
-    addi a0, a0, %lo(.menu_start)
-    addi t0, zero, 3 # 'print string' OS CALL
-    addi a1, zero, 25 # string length
-    ecall
+    # TODO uncomment before submission
+    # lui a0, %hi(.menu_start)
+    # addi a0, a0, %lo(.menu_start)
+    # addi t0, zero, 3 # 'print string' OS CALL
+    # addi a1, zero, 25 # string length
+    # ecall
 
     # read option
-    addi t0, zero, 4; # 'read int' OS CALL
+    addi t0, zero, 4 # 'read int' OS CALL
     ecall
 
     # jump to chosen operation
     addi t1, zero, 1
-    beq a0, t1, sum; # if option == 1 then sum
+    beq a0, t1, sum # if option == 1 then sum
 
     # show error message
     lui a0, %hi(.error_message)
@@ -24,36 +25,80 @@ main:
     addi t0, zero, 3 # 'print string' OS CALL
     addi a1, zero, 22 # string length
     ecall
+
+    j end
 end:
     # load return address and exit
-    lw ra, 0(sp)
-    addi sp, sp, 4
+    call pop
+    addi ra, a0, 0
     jr ra
     
 sum:
     # save first int to t1
-    addi t0, zero, 4; # 'read int' OS CALL
-    ecall
+    call readInt
     addi t1, a0, 0
 
     # save second int to t2
-    addi t0, zero, 4 # redundant
-    ecall
+    call readInt
     addi t2, a0, 0
 
-    # save sum to a0 and print it
+    # save sum to a0 and t1
     add a0, t1, t2
+    addi t1, a0, 0
 
+    call checkIfNegative
+    addi t2, a0, 0 # t2 = isNegative
+    addi a0, t1, 0 # a0 = sum
+
+    bne t2, zero, returnIsNegative
+
+    call printPositive
+    j end
+
+returnIsNegative:
+    call printNegative
+    j end
+
+readInt:
+    addi a0, zero, 4 # 'read int' OS CALL
+    ecall
+    ret
+
+
+checkIfNegative:
     # check if it is negative
-    andi t3, a0, 2147483648
-    
-    # TODO
+    andi a0, a0, 2147483648 # 2^31
+    ret
 
+printNegative:
+    # make it positive
+    not a0, a0 
+    addi a1, a0, 1
+
+    # print minus sign
+    addi t0, zero, 2
+    addi a0, zero, 45
+    ecall
+
+    # print number
+    addi a0, a1, 0
     addi t0, zero, 1
     ecall
-    
-    # exit
-    j end
+    ret
+
+printPositive:
+    addi t0, zero, 1
+    ecall
+    ret
+
+push:
+    addi sp, sp, -4
+    sw a0, 0(sp)
+    ret
+pop:
+    lw a0, 0(sp)
+    addi sp, sp, 4
+    ret
 
 .rodata
 .menu_start:
