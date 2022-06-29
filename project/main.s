@@ -110,18 +110,20 @@ multiplication:
     add t3, t3, a0
     # case one is negative and one is positive then t3 = 1, else t3 = 0 or t3 = 2
     
-    # a0 = abs(t1) and a1 = abs(t2)
+    # a0 = abs(t1) and a1 = abs(t2)Q
     addi a0, t1, 0
     call getAbsolute
-    addi a1, a0, 0
-    addi a0, t2, 0
+    addi t1, a0, 0
+
+    addi a0, t2, 0 # a0 = first multiplier
     call getAbsolute
+    addi a1, t1, 0 # a1 = second multiplier
 
     # calculate product
     call multiply
     
-    addi t1, a0, 1
-    bne t3, t1, returnIsNegative
+    addi t1, zero, 1
+    beq t3, t1, mult_return_is_negative
     
     call printPositive
     j end
@@ -136,40 +138,58 @@ returnIsNegative:
     call printNegative
     j end
 
+mult_return_is_negative:
+    addi a1, a0, 0
+    call print_minus_sign
+    addi a0, a1, 0
+    call printPositive
+    j end
+
 readInt:
     addi a0, zero, 4 # 'read int' OS CALL
     ecall
     ret
 
 checkIfNegative:
-    # check if it is negative
-    andi a0, a0, 2147483648 # 2^31
+    lui a1, %hi(.aux)
+    addi a1, a1, %lo(.aux)
+    lw a1, 0(a1) # a1 = 2^31 = 10000000 00000000 00000000 00000000
+
+    and a0, a0, a1
     slt a0, a0, zero # if argument is negative then a0 = 1
     ret
 
 getAbsolute:
     # return absolute value
+    addi a3, ra, 0
     call push
     call checkIfNegative
+    addi a2, a0, 0 # a2 = isNegative
 
     # case is negative then negate and add one
     call pop
     addi a1, zero, 1
-    beq a0, a1, negateAndAddOne
+    beq a2, a1, invert
 
     # case is positive just return
-    ret
+    jr a3
+
+invert:
+    not a0, a0 
+    addi a0, a0, 1
+    jr a3
 
 multiply:
     addi a3, a0, 0
+    addi a0, zero, 0
 multiply_loop:
-    addi a0, a3, 0
-    addi a1, zero, -1
-    bne a1, zero, multiply_loop
+    add a0, a0, a3
+    addi a1, a1, -1
+    bgt a1, zero, multiply_loop
     ret
 
 negateAndAddOne:
-    # convert to absolute value
+    # convert to C2 value
     not a0, a0 
     addi a0, a0, 1
     ret
@@ -206,7 +226,9 @@ pop:
     lw a0, 0(sp)
     addi sp, sp, 4
     ret
-
+.section .data
+.aux:
+    .word 0x80000000
 .rodata
 .menu_start:
     # TODO add menu options for SUB and MULT
@@ -225,5 +247,3 @@ pop:
     .word 0x6F697470 # 70 74 69 6F
     .word 0x00000A6E # 6E
     .text
-# TODO add error message for division by zero
-# TODO add error message for overflow
