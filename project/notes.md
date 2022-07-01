@@ -3,9 +3,9 @@
  * [ASCII to HEX](https://www.rapidtables.com/convert/number/ascii-to-hex.html)
 
 ## TODO list
- - [ ] Soma
- - [ ] Subtração
- - [ ] Multiplicação
+ - [X] Soma
+ - [X] Subtração
+ - [X] Multiplicação
  - [ ] Divisão
  - [ ] conversão decimal <-> binária
  - [ ] decimal <-> hexadecimal 

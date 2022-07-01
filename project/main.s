@@ -22,6 +22,8 @@ main:
     beq a0, t1, subtraction # if option == 2 then sub
     addi t1, zero, 3;
     beq a0, t1, multiplication # if option == 3 then mul
+    addi t1, zero, 4;
+    beq a0, t1, div # if option == 4 then div
     
 
     # show error message
@@ -128,6 +130,69 @@ multiplication:
     call printPositive
     j end
 
+div:
+    # save first dividend to t1 and a1
+    call readInt
+    addi t1, a0, 0
+    
+    # save second divisor to t2 and a2
+    call readInt
+    addi t2, a0, 0
+
+    # check if dividend is zero
+    beq t1, zero, returnIsZero
+
+    # check if divisor is zero
+    beq t2, zero, division_by_zero
+
+    # check if first int is negative
+    addi a0, t1, 0
+    call checkIfNegative
+    addi t3, a0, 0
+
+    # check if second int is negative
+    addi a0, t2, 0
+    call checkIfNegative
+    add t3, t3, a0
+    # case one is negative and one is positive then t3 = 1, else t3 = 0 or t3 = 2
+
+    # a0 = abs(t1) and a1 = abs(t2)Q
+    addi a0, t1, 0
+    call getAbsolute
+    addi t1, a0, 0
+
+    addi a0, t2, 0 # a0 = divisor
+    call getAbsolute
+    addi a1, t1, 0 # a1 = dividend
+
+    call divide
+
+    call print_div_result
+    addi a0, a1, 0
+    call print_div_remainder
+
+    j end
+
+print_div_result:
+    # print result
+    # lui a0, %hi(.div_result)
+    # addi a0, a0, %lo(.div_result)
+    # addi t0, zero, 3 # 'print string' OS CALL
+    # addi a1, zero, 11 # string length
+    # ecall
+    call printPositive
+
+    ret
+print_div_remainder:
+    # print remainder
+    # lui a0, %hi(.div_remainder)
+    # addi a0, a0, %lo(.div_remainder)
+    # addi t0, zero, 3 # 'print string' OS CALL
+    # addi a1, zero, 11 # string length
+    # ecall
+    call printPositive
+
+    ret
 returnIsZero:
     addi a0, zero, 0
     addi t0, zero, 1
@@ -178,6 +243,29 @@ invert:
     not a0, a0 
     addi a0, a0, 1
     jr a3
+
+divide:
+    addi a3, a0, 0 # a3 = divisor
+    addi a0, zero, 0 # a0 = result
+    addi a4, zero, 0
+divide_loop:
+    # case if dividend is less than divisor return
+    blt a1, a3, finish_division 
+    sub a1, a1, a3
+    addi a4, a4, 1
+    j divide_loop
+
+finish_division:
+    addi a0, a4, 0
+    ret
+
+division_by_zero:
+    lui a0, %hi(.division_by_zero_text)
+    addi a0, a0, %lo(.division_by_zero_text)
+    addi t0, zero, 3 # 'print string' OS CALL
+    addi a1, zero, 25 # TODO insert proper string length
+    ecall
+    j end
 
 multiply:
     addi a3, a0, 0
@@ -246,4 +334,6 @@ pop:
     .word 0x6F206469 # 69 64 20 6F
     .word 0x6F697470 # 70 74 69 6F
     .word 0x00000A6E # 6E
+.division_by_zero_text:
+    .word 0x00000000 # TODO insert proper string
     .text
