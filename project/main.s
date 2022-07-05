@@ -1,3 +1,5 @@
+
+
 main:
     # save return address
     addi a0, ra, 0
@@ -5,11 +7,11 @@ main:
 
     # print menu options
     # TODO uncomment before submission
-    # lui a0, %hi(.menu_start)
-    # addi a0, a0, %lo(.menu_start)
-    # addi t0, zero, 3 # 'print string' OS CALL
-    # addi a1, zero, 25 # string length
-    # ecall
+    lui a0, %hi(.menu_start)
+    addi a0, a0, %lo(.menu_start)
+    addi t0, zero, 3 # 'print string' OS CALL
+    addi a1, zero, 117 # string length
+    ecall
 
     # read option
     addi t0, zero, 4 # 'read int' OS CALL
@@ -58,7 +60,9 @@ sum:
     addi a0, t1, 0 # a0 = sum
 
     bne t2, zero, returnIsNegative
-
+    addi s0, a0, 0
+    call print_result_text
+    addi a0, s0, 0
     call printPositive
     j end
 
@@ -81,6 +85,10 @@ subtraction:
     
     bne t2, zero, returnIsNegative
     
+    addi s0, a0, 0
+    call print_result_text
+    addi a0, s0, 0
+
     call printPositive
     j end
 
@@ -125,8 +133,12 @@ multiplication:
     call multiply
     
     addi t1, zero, 1
-    beq t3, t1, mult_return_is_negative
+    beq t3, t1, mult_div_return_is_negative
     
+    addi s0, a0, 0
+    call print_result_text
+    addi a0, s0, 0
+
     call printPositive
     j end
 
@@ -167,32 +179,38 @@ div:
 
     call divide
 
-    call print_div_result
+    addi t1, zero, 1
+    beq t3, t1, mult_div_return_is_negative
+
+    addi s0, a0, 0
+    call print_result_text
+    addi a0, s0, 0
+
     addi a0, a1, 0
     call print_div_remainder
 
     j end
 
-print_div_result:
-    # print result
-    # lui a0, %hi(.div_result)
-    # addi a0, a0, %lo(.div_result)
-    # addi t0, zero, 3 # 'print string' OS CALL
-    # addi a1, zero, 11 # string length
-    # ecall
-    call printPositive
-
+print_result_text:
+    lui a0, %hi(.result)
+    addi a0, a0, %lo(.result)
+    addi t0, zero, 3 # 'print string' OS CALL
+    addi a1, zero, 27 # string length
+    ecall
     ret
+
 print_div_remainder:
-    # print remainder
-    # lui a0, %hi(.div_remainder)
-    # addi a0, a0, %lo(.div_remainder)
-    # addi t0, zero, 3 # 'print string' OS CALL
-    # addi a1, zero, 11 # string length
-    # ecall
-    call printPositive
+    addi s0, a0, 0
+    lui a0, %hi(.div_remainder)
+    addi a0, a0, %lo(.div_remainder)
+    addi t0, zero, 3 # 'print string' OS CALL
+    addi a1, zero, 22 # string length
+    ecall
+    addi a0, s0, 0
 
+    call printPositive
     ret
+
 returnIsZero:
     addi a0, zero, 0
     addi t0, zero, 1
@@ -200,10 +218,16 @@ returnIsZero:
     j end
 
 returnIsNegative:
+    addi s0, a0, 0
+    call print_result_text
+    addi a0, s0, 0
     call printNegative
     j end
 
-mult_return_is_negative:
+mult_div_return_is_negative:
+    addi s0, a0, 0
+    call print_result_text
+    addi a0, s0, 0
     addi a1, a0, 0
     call print_minus_sign
     addi a0, a1, 0
@@ -211,7 +235,13 @@ mult_return_is_negative:
     j end
 
 readInt:
-    addi a0, zero, 4 # 'read int' OS CALL
+    lui a0, %hi(.read_int_text)
+    addi a0, a0, %lo(.read_int_text)
+    addi t0, zero, 3 # 'print string' OS CALL
+    addi a1, zero, 20 # string length
+    ecall
+
+    addi t0, zero, 4 # 'read int' OS CALL
     ecall
     ret
 
@@ -263,7 +293,7 @@ division_by_zero:
     lui a0, %hi(.division_by_zero_text)
     addi a0, a0, %lo(.division_by_zero_text)
     addi t0, zero, 3 # 'print string' OS CALL
-    addi a1, zero, 25 # TODO insert proper string length
+    addi a1, zero, 19 # TODO insert proper string length
     ecall
     j end
 
@@ -302,6 +332,7 @@ printNegative:
     ret
 
 printPositive:
+
     addi t0, zero, 1
     ecall
     ret
@@ -318,22 +349,72 @@ pop:
 .aux:
     .word 0x80000000
 .rodata
-.menu_start:
-    # TODO add menu options for SUB and MULT
-    .word 0x6F6F6843 # 43 68 6F 6F
-    .word 0x6F206573 # 73 65 20 6F
-    .word 0x61726570 # 70 65 72 61
-    .word 0x6E6F6974 # 74 69 6F 6E
-    .word 0x29310A3A # 3A 0A 31 29
-    .word 0x4D555320 # 20 53 55 4D
-    .word 0x0000000A
+
 .error_message:
-    .word 0x4F525245 # 45 52 52 4F
-    .word 0x49203A52 # 52 3A 20 49
-    .word 0x6C61766E # 6E 76 61 6C
-    .word 0x6F206469 # 69 64 20 6F
-    .word 0x6F697470 # 70 74 69 6F
-    .word 0x00000A6E # 6E
+    .word 0x6163704f
+    .word 0x6e69206f
+    .word 0x696c6176
+    .word 0x00006164
+
 .division_by_zero_text:
-    .word 0x00000000 # TODO insert proper string
-    .text
+    .word 0x4f525245 # TODO insert proper string
+    .word 0x6944203a
+    .word 0xe3736976
+    .word 0x6f70206f
+    .word 0x00302072
+
+.menu_start:
+    .word 0x6f637345 # menu
+    .word 0x2061686c
+    .word 0x20616d75
+    .word 0x20736164
+    .word 0x7265706f
+    .word 0x656f6361
+    .word 0x62612073
+    .word 0x6f786961
+    .word 0x0000003a
+    .word 0x0000000a # pula linha
+    .word 0x0000000a # pula linha
+    .word 0x202d2031 # soma
+    .word 0x616d6f73
+    .word 0x00000000
+    .word 0x0000000a # pula linha
+    .word 0x202d2032 # subtracao
+    .word 0x74627573
+    .word 0xe3e76172
+    .word 0x0000006f
+    .word 0x0000000a # pula linha
+    .word 0x202d2033 # multiplicacao
+    .word 0x746c756d
+    .word 0x696c7069
+    .word 0xe3e76163
+    .word 0x0000006f
+    .word 0x0000000a # pula linha
+    .word 0x202d2034 # divisao
+    .word 0x69766964
+    .word 0x006fe373
+    .word 0x0000000a # pula linha
+
+.result:
+    .word 0x6572204f
+    .word 0x746c7573
+    .word 0x206f6461
+    .word 0x6f206164
+    .word 0x61726570
+    .word 0x206f6163
+    .word 0x00203ae9
+
+.div_remainder:
+    .word 0x6572204f
+    .word 0x206f7473
+    .word 0x64206164
+    .word 0x73697669
+    .word 0xe9206f61
+    .word 0x0000203a
+
+.read_int_text:
+    .word 0x69736e49
+    .word 0x75206172
+    .word 0x706f206d
+    .word 0x6e617265
+    .word 0x203a6f64
